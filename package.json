@@ -1,0 +1,24 @@
+{
+  "name": "coinank-cli",
+  "version": "0.1.0",
+  "description": "CoinAnk OpenAPI CLI — cryptocurrency derivatives data in your terminal",
+  "type": "module",
+  "bin": {
+    "coinank": "./bin/coinank.js"
+  },
+  "scripts": {
+    "dev": "node bin/coinank.js"
+  },
+  "dependencies": {
+    "axios": "^1.7.9",
+    "chalk": "^5.3.0",
+    "cli-table3": "^0.6.5",
+    "commander": "^12.1.0",
+    "conf": "^13.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": ["coinank", "crypto", "derivatives", "cli", "bitcoin"],
+  "license": "MIT"
+}
