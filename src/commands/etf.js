@@ -82,14 +82,16 @@ async function etfInflow(type, opts) {
   const rows = Array.isArray(data) ? data : []
 
   console.log(chalk.bold(`\n  US ${type.toUpperCase()} ETF Daily Net Inflow\n`))
-  const table = makeTable(['Date', 'Net Change', 'Net Change (USD)', 'Top Ticker'], [14, 14, 18, 12])
+  const table = makeTable(['Date', 'Net (Coins)', 'Net (USD)', 'Top Ticker'], [14, 14, 16, 12])
   for (const r of rows.slice(-20).reverse()) {
     const val = Number(r.change || 0)
+    const valUsd = Number(r.changeUsd || 0)
+    const coinStr = val >= 0 ? chalk.green('+' + val.toLocaleString()) : chalk.red(val.toLocaleString())
     table.push([
       r.date ? new Date(Number(r.date)).toLocaleDateString() : '—',
-      val >= 0 ? chalk.green(fmtUsd(val)) : chalk.red(fmtUsd(val)),
-      fmtUsd(r.changeUsd),
-      r.list?.[0]?.ticker || '—',
+      coinStr,
+      valUsd >= 0 ? chalk.green(fmtUsd(valUsd)) : chalk.red(fmtUsd(valUsd)),
+      r.list?.[0]?.change != null ? (r.list[0].change >= 0 ? chalk.green : chalk.red)(String(r.list[0].change)) : '—',
     ])
   }
   console.log(table.toString())

@@ -74,20 +74,31 @@ async function frCurrent(opts) {
     params: { type: opts.period || 'current' },
   })
   if (opts.json) return outputJson(data)
-  const rows = Array.isArray(data) ? data : data?.list || []
+
+  // Response: [{symbol, umap: {exchange: {fundingRate}}, cmap: {...}}]
+  const rows = Array.isArray(data) ? data : []
+  if (!rows.length) return console.log('No data.')
+  const mapType = opts.type === 'COIN' ? 'cmap' : 'umap'
+  const exchanges = rows[0] ? Object.keys(rows[0][mapType] || {}) : []
 
   if (opts.csv) {
-    return outputCsv(
-      rows.map((r) => [r.baseCoin || r.symbol, r.exchangeName, r.fundingRate]),
-      ['coin', 'exchange', 'fundingRate']
-    )
+    const csvRows = []
+    for (const r of rows) {
+      for (const ex of exchanges) {
+        const fr = r[mapType]?.[ex]?.fundingRate
+        if (fr != null) csvRows.push([r.symbol, ex, fr])
+      }
+    }
+    return outputCsv(csvRows, ['coin', 'exchange', 'fundingRate'])
   }
-  console.log(chalk.bold(`\n  Current Funding Rates (${opts.period || 'current'})\n`))
-  const table = makeTable(['Coin', 'Exchange', 'Funding Rate'], [12, 14, 16])
-  for (const r of rows) {
-    table.push([r.baseCoin || r.symbol || '—', r.exchangeName || '—', fmtPct(r.fundingRate, 4)])
+
+  console.log(chalk.bold(`\n  Current Funding Rates (${opts.period || 'current'}, ${opts.type || 'USDT'})\n`))
+  const table = makeTable(['Coin', ...exchanges], [8, ...exchanges.map(() => 14)])
+  for (const r of rows.slice(0, 30)) {
+    table.push([r.symbol, ...exchanges.map((ex) => fmtPct(r[mapType]?.[ex]?.fundingRate, 4))])
   }
   console.log(table.toString())
+  if (rows.length > 30) console.log(chalk.grey(`  ... and ${rows.length - 30} more. Use --json to see all.\n`))
 }
 
 async function frAccumulated(opts) {

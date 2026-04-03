@@ -88,11 +88,29 @@ async function oiChart(opts) {
 
 async function oiSymbol(symbol, opts) {
   const client = createClient()
-  const params = { symbol, interval: opts.interval, endTime: nowMs(), size: opts.size }
-  if (opts.exchange) params.exchangeName = opts.exchange
+  const params = {
+    symbol,
+    exchange: opts.exchange || 'Binance',
+    interval: opts.interval,
+    endTime: nowMs(),
+    size: opts.size,
+  }
 
   const data = await client.get('/api/openInterest/symbol/Chart', { params })
 
   if (opts.json) return outputJson(data)
-  console.log(JSON.stringify(data, null, 2))
+  const rows = Array.isArray(data) ? data : []
+  if (!rows.length) return console.log('No data.')
+
+  console.log(chalk.bold(`\n  ${symbol} Open Interest (${params.exchange}, ${opts.interval})\n`))
+  const table = makeTable(['Time', 'OI (Coins)', 'OI (USD)', 'Volume'], [22, 14, 14, 14])
+  for (const r of rows) {
+    table.push([
+      new Date(Number(r.ts)).toLocaleString(),
+      r.coinCount?.toFixed(0) ?? '—',
+      fmtUsd(r.coinValue),
+      fmtUsd(r.volume),
+    ])
+  }
+  console.log(table.toString())
 }

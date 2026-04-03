@@ -27,14 +27,17 @@ export function registerNews(program) {
       })
       if (opts.json) return outputJson(data)
       const rows = Array.isArray(data) ? data : data?.list || []
+      const stripHtml = (s) => (s || '').replace(/<[^>]+>/g, '').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&amp;/g,'&').replace(/&nbsp;/g,' ').trim()
 
       const label = opts.type === '2' ? 'News Articles' : 'Flash Alerts'
       console.log(chalk.bold(`\n  ${label} (${opts.lang})\n`))
       for (const r of rows) {
         const time = r.publishTime ? chalk.grey(fmtTs(r.publishTime)) : ''
-        console.log(chalk.bold('  • ' + (r.title || r.content || '').slice(0, 80)))
+        const title = stripHtml(r.title || r.content || '').slice(0, 80)
+        const body = r.title ? stripHtml(r.content || '') : ''
+        console.log(chalk.bold('  • ' + title))
         if (time) console.log('    ' + time)
-        if (r.content && r.title) console.log('    ' + chalk.grey(r.content.slice(0, 120) + (r.content.length > 120 ? '…' : '')))
+        if (body) console.log('    ' + chalk.grey(body.slice(0, 120) + (body.length > 120 ? '…' : '')))
         console.log()
       }
     })

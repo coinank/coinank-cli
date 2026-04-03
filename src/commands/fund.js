@@ -75,7 +75,7 @@ async function fundHist(coin, opts) {
   const table = makeTable(['Time', '1H', '4H', '24H'], [22, 14, 14, 14])
   const fmt = (v) => { const n = Number(v || 0); return n >= 0 ? chalk.green(fmtUsd(n)) : chalk.red(fmtUsd(n)) }
   for (const r of rows) {
-    table.push([fmtTs(r.ts || r.time), fmt(r.h1net), fmt(r.h4net), fmt(r.h24net)])
+    table.push([fmtTs(r.ts || r.time), fmt(r.h1net), fmt(r.h4net), fmt(r.d1net)])
   }
   console.log(table.toString())
 }

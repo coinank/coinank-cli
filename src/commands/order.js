@@ -60,25 +60,37 @@ async function orderLarge(opts) {
 
 async function orderBook(opts) {
   const client = createClient()
-  const data = await client.get('/api/bigOrder/queryOrderList', {
-    params: {
-      symbol: opts.symbol,
-      exchangeType: opts.product,
-      exchange: opts.exchange || 'Binance',
-      side: opts.side || 'ask',
-      amount: opts.amount,
-      size: opts.size,
-      isHistory: opts.history ? 'true' : 'false',
-    },
-  })
+  const now = Date.now()
+  const params = {
+    symbol: opts.symbol,
+    exchangeType: opts.product,
+    exchange: opts.exchange || 'Binance',
+    side: opts.side || 'ask',
+    amount: opts.amount,
+    size: opts.size,
+    isHistory: opts.history ? 'true' : 'false',
+    startTime: opts.history ? undefined : String(now - 4 * 3600 * 1000),
+  }
+  const data = await client.get('/api/bigOrder/queryOrderList', { params })
   if (opts.json) return outputJson(data)
   const rows = Array.isArray(data) ? data : data?.list || []
 
-  console.log(chalk.bold(`\n  ${opts.symbol} Large Limit Orders\n`))
-  const table = makeTable(['Symbol', 'Exchange', 'Side', 'Price', 'Amount', 'Total'], [14, 12, 8, 14, 14, 14])
+  const sideLabel = (opts.side || 'ask') === 'ask' ? 'Ask (Sell Wall)' : 'Bid (Buy Wall)'
+  console.log(chalk.bold(`\n  ${opts.symbol} Large Limit Orders — ${sideLabel}\n`))
+  const table = makeTable(['Time', 'Exchange', 'Side', 'Price', 'Size (USD)', 'Filled'], [22, 12, 8, 14, 14, 10])
   for (const r of rows) {
     const side = r.side === 'bid' ? chalk.green('Bid') : chalk.red('Ask')
-    table.push([r.symbol, r.exchangeName || opts.exchange, side, r.price ? '$' + r.price : '—', fmtUsd(r.amount), fmtUsd(r.total)])
+    const filled = r.entrustTurnover > 0
+      ? ((r.turnoverAmount / r.entrustTurnover) * 100).toFixed(1) + '%'
+      : '—'
+    table.push([
+      fmtTs(r.openTime),
+      r.exchangeName || opts.exchange,
+      side,
+      r.price ? '$' + Number(r.price).toLocaleString() : '—',
+      fmtUsd(r.entrustTurnover),
+      filled,
+    ])
   }
   console.log(table.toString())
 }

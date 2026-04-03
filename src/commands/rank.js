@@ -6,8 +6,8 @@ const RANK_CONFIG = {
   oi:     { path: '/api/instruments/oiRank',          sortBy: 'openInterestH1',  label: 'OI Change Ranking',       ch1: 'openInterestCh1',   ch24: 'openInterestCh24', pct: true },
   liq:    { path: '/api/instruments/liquidationRank', sortBy: 'liquidationH24',  label: 'Liquidation Ranking',     ch1: 'liquidationH1',     ch24: 'liquidationH24',   pct: false },
   price:  { path: '/api/instruments/priceRank',       sortBy: 'priceChangeH24',  label: 'Price Change Ranking',    ch1: 'priceChangeH1',     ch24: 'priceChangeH24',   pct: true },
-  volume: { path: '/api/instruments/volumeRank',      sortBy: 'turnover24h',     label: 'Volume Ranking',          ch1: 'priceChangeH1',     ch24: 'priceChangeH24',   pct: true },
-  ls:     { path: '/api/instruments/longShortRank',   sortBy: 'longRatio',       label: 'Long/Short Ranking',      ch1: 'longRatio',         ch24: 'shortRatio',       pct: true },
+  volume: { path: '/api/instruments/volumeRank',      sortBy: 'turnover24h',     label: 'Volume Ranking',          ch1: 'turnoverChg1h',     ch24: 'turnoverChg24h',   pct: true },
+  ls:     { path: '/api/instruments/longShortRank',   sortBy: 'longShortPerson', label: 'Long/Short Ranking',      ch1: 'lsPersonChg1h',     ch24: 'lsPersonChg4h',    pct: true },
 }
 
 export function registerRank(program) {

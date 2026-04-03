@@ -19,6 +19,16 @@
   "engines": {
     "node": ">=18.0.0"
   },
-  "keywords": ["coinank", "crypto", "derivatives", "cli", "bitcoin"],
-  "license": "MIT"
+  "keywords": ["coinank", "crypto", "derivatives", "cli", "bitcoin", "futures", "funding-rate", "open-interest"],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/coinank/coinank-cli.git"
+  },
+  "homepage": "https://github.com/coinank/coinank-cli#readme",
+  "files": [
+    "bin/",
+    "src/",
+    "README.md"
+  ]
 }

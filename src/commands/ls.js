@@ -91,19 +91,27 @@ async function lsBuySell(opts) {
   console.log(table.toString())
 }
 
+function renderRatioTable(data, title) {
+  // Response: { tss: [...], longShortRatio: [...] }
+  const { tss = [], longShortRatio = [] } = data || {}
+  console.log(chalk.bold(`\n  ${title}\n`))
+  const table = makeTable(['Time', 'L/S Ratio'], [22, 14])
+  tss.slice(-20).reverse().forEach((ts, i) => {
+    const idx = tss.length - 1 - i
+    const ratio = longShortRatio[idx]
+    const ratioStr = ratio != null ? fmtNum(ratio, 4) : '—'
+    table.push([fmtTs(ts), ratio >= 1 ? chalk.green(ratioStr) : chalk.red(ratioStr)])
+  })
+  console.log(table.toString())
+}
+
 async function lsPosition(opts) {
   const client = createClient()
   const data = await client.get('/api/longshort/position', {
     params: { exchange: opts.exchange, symbol: opts.symbol, interval: opts.interval, endTime: nowMs(), size: opts.size },
   })
   if (opts.json) return outputJson(data)
-  const { longRatios = [], shortRatios = [], tss = [] } = data || {}
-  console.log(chalk.bold(`\n  ${opts.symbol} Top Trader Position Ratio (${opts.exchange}, ${opts.interval})\n`))
-  const table = makeTable(['Time', 'Long', 'Short'], [22, 14, 14])
-  tss.slice(-20).reverse().forEach((ts, i) => {
-    table.push([fmtTs(ts), chalk.green(fmtNum(longRatios[tss.length - 1 - i], 4)), chalk.red(fmtNum(shortRatios[tss.length - 1 - i], 4))])
-  })
-  console.log(table.toString())
+  renderRatioTable(data, `${opts.symbol} Top Trader Position Ratio (${opts.exchange}, ${opts.interval})`)
 }
 
 async function lsAccount(opts) {
@@ -112,13 +120,7 @@ async function lsAccount(opts) {
     params: { exchange: opts.exchange, symbol: opts.symbol, interval: opts.interval, endTime: nowMs(), size: opts.size },
   })
   if (opts.json) return outputJson(data)
-  const { longRatios = [], shortRatios = [], tss = [] } = data || {}
-  console.log(chalk.bold(`\n  ${opts.symbol} Top Trader Account Ratio (${opts.exchange}, ${opts.interval})\n`))
-  const table = makeTable(['Time', 'Long', 'Short'], [22, 14, 14])
-  tss.slice(-20).reverse().forEach((ts, i) => {
-    table.push([fmtTs(ts), chalk.green(fmtNum(longRatios[tss.length - 1 - i], 4)), chalk.red(fmtNum(shortRatios[tss.length - 1 - i], 4))])
-  })
-  console.log(table.toString())
+  renderRatioTable(data, `${opts.symbol} Top Trader Account Ratio (${opts.exchange}, ${opts.interval})`)
 }
 
 async function lsPerson(opts) {
@@ -127,11 +129,5 @@ async function lsPerson(opts) {
     params: { exchange: opts.exchange, symbol: opts.symbol, interval: opts.interval, endTime: nowMs(), size: opts.size },
   })
   if (opts.json) return outputJson(data)
-  const { longRatios = [], shortRatios = [], tss = [] } = data || {}
-  console.log(chalk.bold(`\n  ${opts.symbol} Long/Short Person Ratio (${opts.exchange}, ${opts.interval})\n`))
-  const table = makeTable(['Time', 'Long', 'Short'], [22, 14, 14])
-  tss.slice(-20).reverse().forEach((ts, i) => {
-    table.push([fmtTs(ts), chalk.green(fmtNum(longRatios[tss.length - 1 - i], 4)), chalk.red(fmtNum(shortRatios[tss.length - 1 - i], 4))])
-  })
-  console.log(table.toString())
+  renderRatioTable(data, `${opts.symbol} Long/Short Person Ratio (${opts.exchange}, ${opts.interval})`)
 }
