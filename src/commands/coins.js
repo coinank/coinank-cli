@@ -42,19 +42,17 @@ async function coinsList(opts) {
   })
   if (opts.json) return outputJson(data)
   const rows = Array.isArray(data) ? data : data?.list || []
-  const limited = rows.slice(0, 60)
 
-  if (opts.csv) return outputCsv(limited.map((r) => [r.baseCoin || r, r.fullName || '']), ['baseCoin', 'fullName'])
+  if (opts.csv) return outputCsv(rows.map((r) => [r.baseCoin || r, r.fullName || '']), ['baseCoin', 'fullName'])
 
-  console.log(chalk.bold(`\n  Available Base Coins (${opts.product})\n`))
+  console.log(chalk.bold(`\n  Available Base Coins (${opts.product}) — ${rows.length} total\n`))
   const cols = 8
   const lines = []
-  for (let i = 0; i < limited.length; i += cols) {
-    lines.push('  ' + limited.slice(i, i + cols).map((r) => (r.baseCoin || r).padEnd(10)).join(''))
+  for (let i = 0; i < rows.length; i += cols) {
+    lines.push('  ' + rows.slice(i, i + cols).map((r) => (r.baseCoin || r).padEnd(10)).join(''))
   }
   console.log(lines.join('\n'))
-  if (rows.length > 60) console.log(chalk.grey(`\n  ... and ${rows.length - 60} more.\n`))
-  else console.log()
+  console.log()
 }
 
 async function coinsPrice(symbol, opts) {
