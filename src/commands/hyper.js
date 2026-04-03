@@ -48,12 +48,12 @@ async function hyperPositions(opts) {
     )
   }
   console.log(chalk.bold(`\n  HyperLiquid Top Whale Positions\n`))
-  const table = makeTable(['Address', 'Coin', 'Side', 'Position', 'Unrealized PnL', 'Lev'], [20, 8, 8, 14, 16, 6])
+  const table = makeTable(['Address', 'Coin', 'Side', 'Position', 'Unrealized PnL', 'Lev'], [44, 8, 8, 14, 16, 6])
   for (const r of rows) {
     const pnl = Number(r.unrealizedPnl || 0)
     const side = (r.side || '').toLowerCase() === 'long' ? chalk.green('Long') : chalk.red('Short')
     table.push([
-      (r.address || '').slice(0, 18) + '…',
+      r.address || '—',
       r.baseCoin || r.coin || '—',
       side,
       fmtUsd(r.positionValue),
@@ -84,13 +84,13 @@ async function hyperActions(opts) {
     )
   }
   console.log(chalk.bold(`\n  HyperLiquid Recent Whale Actions\n`))
-  const table = makeTable(['Time', 'Address', 'Coin', 'Side', 'Prev Size', 'Price', 'PnL'], [22, 20, 8, 8, 14, 12, 14])
+  const table = makeTable(['Time', 'Address', 'Coin', 'Side', 'Prev Size', 'Price', 'PnL'], [22, 44, 8, 8, 14, 12, 14])
   for (const r of rows) {
     const side = (r.side || '').toLowerCase() === 'long' ? chalk.green('Long') : chalk.red('Short')
     const pnl = Number(r.unrealizedPnl || 0)
     table.push([
       fmtTs(r.ts),
-      (r.address || '').slice(0, 18) + '…',
+      r.address || '—',
       r.baseCoin || '—',
       side,
       fmtUsd(r.preSize),
