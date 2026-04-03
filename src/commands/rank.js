@@ -3,11 +3,11 @@ import { outputJson, outputCsv, makeTable, fmtUsd, fmtChange } from '../output.j
 import chalk from 'chalk'
 
 const RANK_CONFIG = {
-  oi:     { path: '/api/instruments/oiRank',          sortBy: 'openInterestH1',  label: 'OI Change Ranking',       ch1: 'openInterestCh1',   ch24: 'openInterestCh24', pct: true },
-  liq:    { path: '/api/instruments/liquidationRank', sortBy: 'liquidationH24',  label: 'Liquidation Ranking',     ch1: 'liquidationH1',     ch24: 'liquidationH24',   pct: false },
-  price:  { path: '/api/instruments/priceRank',       sortBy: 'priceChangeH24',  label: 'Price Change Ranking',    ch1: 'priceChangeH1',     ch24: 'priceChangeH24',   pct: true },
-  volume: { path: '/api/instruments/volumeRank',      sortBy: 'turnover24h',     label: 'Volume Ranking',          ch1: 'turnoverChg1h',     ch24: 'turnoverChg24h',   pct: true },
-  ls:     { path: '/api/instruments/longShortRank',   sortBy: 'longShortPerson', label: 'Long/Short Ranking',      ch1: 'lsPersonChg1h',     ch24: 'lsPersonChg4h',    pct: true },
+  oi:     { path: '/api/instruments/oiRank',          sortBy: 'openInterestH1',  label: 'OI Change Ranking',       ch1: 'openInterestCh1',   ch24: 'openInterestCh24', pct: true,  oiField: 'openInterest', volField: null },
+  liq:    { path: '/api/instruments/liquidationRank', sortBy: 'liquidationH24',  label: 'Liquidation Ranking',     ch1: 'liquidationH1',     ch24: 'liquidationH24',   pct: false, oiField: null,            volField: null },
+  price:  { path: '/api/instruments/priceRank',       sortBy: 'priceChangeH24',  label: 'Price Change Ranking',    ch1: 'priceChangeH1',     ch24: 'priceChangeH24',   pct: true,  oiField: null,            volField: null },
+  volume: { path: '/api/instruments/volumeRank',      sortBy: 'turnover24h',     label: 'Volume Ranking',          ch1: 'turnoverChg1h',     ch24: 'turnoverChg24h',   pct: true,  oiField: null,            volField: 'turnover24h' },
+  ls:     { path: '/api/instruments/longShortRank',   sortBy: 'longShortPerson', label: 'Long/Short Ranking',      ch1: 'lsPersonChg1h',     ch24: 'lsPersonChg4h',    pct: true,  oiField: null,            volField: null },
 }
 
 export function registerRank(program) {
@@ -58,7 +58,7 @@ async function rankBy(type, opts) {
 
   if (opts.csv) {
     return outputCsv(
-      rows.map((r) => [r.symbol || r.baseCoin, r.price, r[cfg.ch1], r[cfg.ch24], r.openInterest, r.turnover24h]),
+      rows.map((r) => [r.symbol || r.baseCoin, r.price, r[cfg.ch1], r[cfg.ch24], cfg.oiField ? r[cfg.oiField] : '', cfg.volField ? r[cfg.volField] : '']),
       ['symbol', 'price', 'change1H', 'change24H', 'OI', 'volume24H']
     )
   }
@@ -67,18 +67,25 @@ async function rankBy(type, opts) {
   const h1Label = cfg.pct ? '1H%' : '1H Liq'
   const h24Label = cfg.pct ? '24H%' : '24H Liq'
 
+  // Build dynamic columns: always show #/Symbol/Price/ch1/ch24, optionally OI and Vol
+  const heads = ['#', 'Symbol', 'Price', h1Label, h24Label]
+  const widths = [4, 14, 14, 14, 14]
+  if (cfg.oiField) { heads.push('OI (USD)'); widths.push(14) }
+  if (cfg.volField) { heads.push('Vol 24H'); widths.push(14) }
+
   console.log(chalk.bold(`\n  ${cfg.label}\n`))
-  const table = makeTable(['#', 'Symbol', 'Price', h1Label, h24Label, 'OI (USD)', 'Vol 24H'], [4, 14, 14, 14, 14, 14, 14])
+  const table = makeTable(heads, widths)
   rows.forEach((r, i) => {
-    table.push([
+    const row = [
       i + 1,
       r.symbol || r.baseCoin,
       r.price ? '$' + Number(r.price).toFixed(2) : '—',
       fmtVal(r[cfg.ch1], cfg.pct),
       fmtVal(r[cfg.ch24], cfg.pct),
-      fmtUsd(r.openInterest),
-      fmtUsd(r.turnover24h),
-    ])
+    ]
+    if (cfg.oiField) row.push(fmtUsd(r[cfg.oiField]))
+    if (cfg.volField) row.push(fmtUsd(r[cfg.volField]))
+    table.push(row)
   })
   console.log(table.toString())
 }

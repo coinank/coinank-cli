@@ -27,6 +27,17 @@ export function registerConfig(program) {
     })
 
   cmd
+    .command('list')
+    .description('Show all config values')
+    .action(() => {
+      const k = getApiKey()
+      console.log('\n  CoinAnk CLI Config\n')
+      console.log(`  apikey : ${k ? k.slice(0, 6) + '*'.repeat(k.length - 6) : '(not set)'}`)
+      console.log(`  path   : ${getConfigPath()}`)
+      console.log()
+    })
+
+  cmd
     .command('delete <key>')
     .description('Delete a config value')
     .action((key) => {
