@@ -38,7 +38,7 @@ export function registerKline(program) {
       for (const r of rows) {
         const [startTime, , open, close, high, low, , turnover] = r
         const closeStr = Number(close) >= Number(open) ? chalk.green(Number(close).toFixed(2)) : chalk.red(Number(close).toFixed(2))
-        table.push([new Date(Number(startTime)).toLocaleString(), Number(open).toFixed(2), Number(high).toFixed(2), Number(low).toFixed(2), closeStr, fmtUsd(r[6]), fmtUsd(turnover)])
+        table.push([new Date(Number(startTime)).toLocaleString(), Number(open).toFixed(2), Number(high).toFixed(2), Number(low).toFixed(2), closeStr, Number(r[6]).toLocaleString(), fmtUsd(turnover)])
       }
       console.log(table.toString())
     })

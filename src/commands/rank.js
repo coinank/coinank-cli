@@ -65,11 +65,11 @@ async function rankBy(type, opts) {
 
   const fmtVal = (v, pct) => pct ? fmtChange(v) : fmtUsd(v)
   const h1Label = cfg.pct ? '1H%' : '1H Liq'
-  const h24Label = cfg.pct ? '24H%' : '24H Liq'
+  const h24Label = type === 'ls' ? '4H%' : (cfg.pct ? '24H%' : '24H Liq')
 
   // Build dynamic columns: always show #/Symbol/Price/ch1/ch24, optionally OI and Vol
   const heads = ['#', 'Symbol', 'Price', h1Label, h24Label]
-  const widths = [4, 14, 14, 14, 14]
+  const widths = [4, 20, 14, 14, 14]
   if (cfg.oiField) { heads.push('OI (USD)'); widths.push(14) }
   if (cfg.volField) { heads.push('Vol 24H'); widths.push(14) }
 

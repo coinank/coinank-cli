@@ -1,6 +1,6 @@
 {
   "name": "@coinank/coinank-cli",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "CoinAnk OpenAPI CLI — cryptocurrency derivatives data in your terminal",
   "type": "module",
   "bin": {

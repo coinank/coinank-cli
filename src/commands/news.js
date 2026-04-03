@@ -33,7 +33,7 @@ export function registerNews(program) {
       console.log(chalk.bold(`\n  ${label} (${opts.lang})\n`))
       for (const r of rows) {
         const time = r.publishTime ? chalk.grey(fmtTs(r.publishTime)) : ''
-        const title = stripHtml(r.title || r.content || '').slice(0, 80)
+        const title = stripHtml(r.title || r.content || '').slice(0, 120)
         const body = r.title ? stripHtml(r.content || '') : ''
         console.log(chalk.bold('  • ' + title))
         if (time) console.log('    ' + time)
