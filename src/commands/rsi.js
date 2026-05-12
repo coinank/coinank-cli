@@ -1,12 +1,12 @@
-import { createClient, nowMs } from '../client.js'
-import { outputJson, outputCsv, makeTable, fmtNum, fmtTs } from '../output.js'
+import { createClient } from '../client.js'
+import { outputJson, outputCsv, makeTable, fmtNum } from '../output.js'
 import chalk from 'chalk'
 
 export function registerRsi(program) {
   program
     .command('rsi')
     .description('RSI coin screener (RSI选币器) — VIP2')
-    .option('-i, --interval <interval>', 'Interval: 1H, 4H, 8H, 24H', '1H')
+    .option('-i, --interval <interval>', 'Interval: 1H, 4H, 1D', '1H')
     .option('-e, --exchange <exchange>', 'Exchange', 'Binance')
     .option('-n, --limit <n>', 'Show top N results', '30')
     .option('--json', 'Output raw JSON')

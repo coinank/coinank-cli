@@ -10,6 +10,9 @@ export function registerHyper(program) {
     .option('-n, --size <n>', 'Number of records', '20')
     .option('-p, --page <n>', 'Page number', '1')
     .option('--side <side>', 'Long or Short')
+    .option('--search <address>', 'Search wallet address')
+    .option('--un-pnl <type>', 'Unrealized PnL filter: 1 profit, 2 loss')
+    .option('--fund <type>', 'Fund filter: 1 profit, 2 loss')
     .option('--json', 'Output raw JSON')
     .option('--csv', 'Output CSV')
 
@@ -36,6 +39,9 @@ async function hyperPositions(opts) {
   }
   if (opts.coin) params.baseCoin = opts.coin
   if (opts.side) params.side = opts.side
+  if (opts.search) params.search = opts.search
+  if (opts.unPnl) params.unPnl = opts.unPnl
+  if (opts.fund) params.fund = opts.fund
 
   const data = await client.get('/api/hyper/topPosition', { params })
   if (opts.json) return outputJson(data)
@@ -66,14 +72,7 @@ async function hyperPositions(opts) {
 
 async function hyperActions(opts) {
   const client = createClient()
-  const data = await client.get('/api/hyper/topAction', {
-    params: {
-      page: opts.page,
-      size: opts.size,
-      ...(opts.coin ? { baseCoin: opts.coin } : {}),
-      ...(opts.side ? { side: opts.side } : {}),
-    },
-  })
+  const data = await client.get('/api/hyper/topAction')
   if (opts.json) return outputJson(data)
   const rows = Array.isArray(data) ? data : data?.list || []
 

@@ -1,21 +1,48 @@
 import Conf from 'conf'
 
-const store = new Conf({ projectName: 'coinank-cli' })
+let store
+
+function getStore() {
+  if (!store) store = new Conf({ projectName: 'coinank-cli' })
+  return store
+}
+
+function failConfig(action, err) {
+  console.error(`Error: Could not ${action} config: ${err.message}`)
+  process.exit(1)
+}
 
 export function getApiKey() {
-  return process.env.COINANK_API_KEY || store.get('apikey') || null
+  if (process.env.COINANK_API_KEY) return process.env.COINANK_API_KEY
+  try {
+    return getStore().get('apikey') || null
+  } catch {
+    return null
+  }
 }
 
 export function setApiKey(key) {
-  store.set('apikey', key)
+  try {
+    getStore().set('apikey', key)
+  } catch (err) {
+    failConfig('write', err)
+  }
 }
 
 export function deleteApiKey() {
-  store.delete('apikey')
+  try {
+    getStore().delete('apikey')
+  } catch (err) {
+    failConfig('write', err)
+  }
 }
 
 export function getConfigPath() {
-  return store.path
+  try {
+    return getStore().path
+  } catch (err) {
+    return `unavailable (${err.message})`
+  }
 }
 
 export function requireApiKey() {

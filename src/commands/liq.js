@@ -7,7 +7,7 @@ export function registerLiq(program) {
     .command('liq')
     .description('Liquidation data (爆仓数据)')
     .option('-c, --coin <coin>', 'Base coin', 'BTC')
-    .option('-i, --interval <interval>', 'Interval: 5m,15m,30m,1h,2h,4h,12h,1d', '1h')
+    .option('-i, --interval <interval>', 'Interval: 1m,3m,5m,15m,30m,1h,2h,4h,6h,8h,12h,1d', '1h')
     .option('-n, --size <n>', 'Number of records', '20')
     .option('--json', 'Output raw JSON')
     .option('--csv', 'Output CSV')
@@ -22,8 +22,11 @@ export function registerLiq(program) {
   cmd
     .command('orders')
     .description('Liquidation order list (VIP3)')
-    .action(async () => {
-      await liqOrders(cmd.opts())
+    .option('-e, --exchange <exchange>', 'Exchange', 'Binance')
+    .option('--side <side>', 'Side: long or short', 'long')
+    .option('-a, --amount <usd>', 'Minimum order size in USD', '1000000')
+    .action(async (subOpts) => {
+      await liqOrders({ ...cmd.opts(), ...subOpts })
     })
 
   cmd
@@ -31,6 +34,47 @@ export function registerLiq(program) {
     .description('Historical aggregated liquidation data')
     .action(async () => {
       await liqHist(cmd.opts())
+    })
+
+  cmd
+    .command('symbol <symbol>')
+    .description('Historical liquidation data for a symbol')
+    .option('-e, --exchange <exchange>', 'Exchange', 'Binance')
+    .action(async (symbol, subOpts) => {
+      await liqSymbol(symbol, { ...cmd.opts(), ...subOpts })
+    })
+
+  cmd
+    .command('map <symbol>')
+    .description('Liquidation map for a symbol')
+    .option('-e, --exchange <exchange>', 'Exchange', 'Binance')
+    .option('-i, --interval <interval>', 'Interval: 1d or 1w', '1d')
+    .action(async (symbol, subOpts) => {
+      await liqMap(symbol, { ...cmd.opts(), ...subOpts })
+    })
+
+  cmd
+    .command('agg-map')
+    .description('Aggregated liquidation map by base coin')
+    .option('-i, --interval <interval>', 'Interval: 1d or 1w', '1d')
+    .action(async (subOpts) => {
+      await liqAggMap({ ...cmd.opts(), ...subOpts })
+    })
+
+  cmd
+    .command('heatmap <symbol>')
+    .description('Liquidation heatmap for a symbol')
+    .option('-e, --exchange <exchange>', 'Exchange', 'Binance')
+    .option('-i, --interval <interval>', 'Interval: 12h,1d,3d,1w,2w,1M,3M,6M,1Y', '1d')
+    .action(async (symbol, subOpts) => {
+      await liqHeatmap(symbol, { ...cmd.opts(), ...subOpts })
+    })
+
+  cmd
+    .command('heatmap-symbols')
+    .description('Symbols supported by liquidation heatmap')
+    .action(async () => {
+      await liqHeatmapSymbols(cmd.opts())
     })
 
   cmd.action(async (opts) => {
@@ -82,9 +126,10 @@ async function liqOrders(opts) {
   const data = await client.get('/api/liquidation/orders', {
     params: {
       baseCoin: opts.coin,
-      interval: opts.interval,
+      exchange: opts.exchange || 'Binance',
+      side: opts.side || 'long',
+      amount: opts.amount || '1000000',
       endTime: nowMs(),
-      size: opts.size,
     },
   })
 
@@ -117,6 +162,68 @@ async function liqHist(opts) {
       size: opts.size,
     },
   })
+
+  if (opts.json) return outputJson(data)
+  console.log(JSON.stringify(data, null, 2))
+}
+
+async function liqSymbol(symbol, opts) {
+  const client = createClient()
+  const data = await client.get('/api/liquidation/history', {
+    params: {
+      exchange: opts.exchange || 'Binance',
+      symbol,
+      interval: opts.interval,
+      endTime: nowMs(),
+      size: opts.size,
+    },
+  })
+
+  if (opts.json) return outputJson(data)
+  console.log(JSON.stringify(data, null, 2))
+}
+
+async function liqMap(symbol, opts) {
+  const client = createClient()
+  const data = await client.get('/api/liqMap/getLiqMap', {
+    params: {
+      symbol,
+      exchange: opts.exchange || 'Binance',
+      interval: opts.interval || '1d',
+    },
+  })
+
+  outputJson(data)
+}
+
+async function liqAggMap(opts) {
+  const client = createClient()
+  const data = await client.get('/api/liqMap/getAggLiqMap', {
+    params: {
+      baseCoin: opts.coin,
+      interval: opts.interval || '1d',
+    },
+  })
+
+  outputJson(data)
+}
+
+async function liqHeatmap(symbol, opts) {
+  const client = createClient()
+  const data = await client.get('/api/liqMap/getLiqHeatMap', {
+    params: {
+      exchange: opts.exchange || 'Binance',
+      symbol,
+      interval: opts.interval || '1d',
+    },
+  })
+
+  outputJson(data)
+}
+
+async function liqHeatmapSymbols(opts) {
+  const client = createClient()
+  const data = await client.get('/api/liqMap/getLiqHeatMapSymbol')
 
   if (opts.json) return outputJson(data)
   console.log(JSON.stringify(data, null, 2))

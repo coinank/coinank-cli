@@ -3,7 +3,7 @@ import { outputJson, outputCsv, makeTable, fmtUsd, fmtTs } from '../output.js'
 import chalk from 'chalk'
 
 export function registerNews(program) {
-  program
+  const cmd = program
     .command('news')
     .description('Crypto news and flash alerts (新闻快讯) — VIP2')
     .option('-t, --type <n>', 'Type: 1=flash alerts, 2=news articles', '1')
@@ -13,32 +13,60 @@ export function registerNews(program) {
     .option('--popular', 'Show popular only')
     .option('--search <query>', 'Search query', '')
     .option('--json', 'Output raw JSON')
-    .action(async (opts) => {
-      const client = createClient()
-      const data = await client.get('/api/news/getNewsList', {
-        params: {
-          type: opts.type,
-          lang: opts.lang,
-          page: opts.page,
-          pageSize: opts.size,
-          isPopular: opts.popular ? 'true' : 'false',
-          search: opts.search || '',
-        },
-      })
-      if (opts.json) return outputJson(data)
-      const rows = Array.isArray(data) ? data : data?.list || []
-      const stripHtml = (s) => (s || '').replace(/<[^>]+>/g, '').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&amp;/g,'&').replace(/&nbsp;/g,' ').trim()
 
-      const label = opts.type === '2' ? 'News Articles' : 'Flash Alerts'
-      console.log(chalk.bold(`\n  ${label} (${opts.lang})\n`))
-      for (const r of rows) {
-        const time = r.publishTime ? chalk.grey(fmtTs(r.publishTime)) : ''
-        const title = stripHtml(r.title || r.content || '').slice(0, 120)
-        const body = r.title ? stripHtml(r.content || '') : ''
-        console.log(chalk.bold('  • ' + title))
-        if (time) console.log('    ' + time)
-        if (body) console.log('    ' + chalk.grey(body.slice(0, 120) + (body.length > 120 ? '…' : '')))
-        console.log()
-      }
+  cmd
+    .command('list', { isDefault: true })
+    .description('News list (default)')
+    .action(async () => {
+      await newsList(cmd.opts())
     })
+
+  cmd
+    .command('detail <id>')
+    .description('News detail by id')
+    .action(async (id) => {
+      await newsDetail(id, cmd.opts())
+    })
+
+  cmd.action(async (opts) => {
+    await newsList(opts)
+  })
+}
+
+async function newsList(opts) {
+  const client = createClient()
+  const data = await client.get('/api/news/getNewsList', {
+    params: {
+      type: opts.type,
+      lang: opts.lang,
+      page: opts.page,
+      pageSize: opts.size,
+      isPopular: opts.popular ? 'true' : 'false',
+      search: opts.search || '',
+    },
+  })
+  if (opts.json) return outputJson(data)
+  const rows = Array.isArray(data) ? data : data?.list || []
+  const stripHtml = (s) => (s || '').replace(/<[^>]+>/g, '').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&amp;/g,'&').replace(/&nbsp;/g,' ').trim()
+
+  const label = opts.type === '2' ? 'News Articles' : 'Flash Alerts'
+  console.log(chalk.bold(`\n  ${label} (${opts.lang})\n`))
+  for (const r of rows) {
+    const time = r.publishTime ? chalk.grey(fmtTs(r.publishTime)) : ''
+    const title = stripHtml(r.title || r.content || '').slice(0, 120)
+    const body = r.title ? stripHtml(r.content || '') : ''
+    console.log(chalk.bold('  • ' + title))
+    if (time) console.log('    ' + time)
+    if (body) console.log('    ' + chalk.grey(body.slice(0, 120) + (body.length > 120 ? '…' : '')))
+    console.log()
+  }
+}
+
+async function newsDetail(id, opts) {
+  const client = createClient()
+  const data = await client.get('/api/news/getNewsDetail', {
+    params: { id },
+  })
+  if (opts.json) return outputJson(data)
+  console.log(JSON.stringify(data, null, 2))
 }

@@ -39,6 +39,12 @@ export function registerLs(program) {
     .description('Long/short person ratio (by exchange+symbol)')
     .action(async () => { await lsPerson(cmd.opts()) })
 
+  cmd
+    .command('kline')
+    .description('Long/short ratio K-line')
+    .option('--type <type>', 'longShortPerson, longShortPosition, or longShortAccount', 'longShortPerson')
+    .action(async (subOpts) => { await lsKline({ ...cmd.opts(), ...subOpts }) })
+
   cmd.action(async (opts) => { await lsRealtime(opts) })
 }
 
@@ -130,4 +136,20 @@ async function lsPerson(opts) {
   })
   if (opts.json) return outputJson(data)
   renderRatioTable(data, `${opts.symbol} Long/Short Person Ratio (${opts.exchange}, ${opts.interval})`)
+}
+
+async function lsKline(opts) {
+  const client = createClient()
+  const data = await client.get('/api/longshort/kline', {
+    params: {
+      exchange: opts.exchange,
+      symbol: opts.symbol,
+      endTime: nowMs(),
+      interval: opts.interval,
+      size: opts.size,
+      type: opts.type || 'longShortPerson',
+    },
+  })
+  if (opts.json) return outputJson(data)
+  console.log(JSON.stringify(data, null, 2))
 }

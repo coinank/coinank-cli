@@ -50,6 +50,34 @@ export function registerIndicator(program) {
       await indicatorSimple('/api/indicator/getPuellMultiple', 'Puell Multiple', cmd.opts())
     })
 
+  cmd
+    .command('market-cap-rank <symbol>')
+    .description('BTC market-cap dominance data')
+    .action(async (symbol) => {
+      await indicatorWithParams('/api/indicator/getMarketCapRank', { symbol }, cmd.opts())
+    })
+
+  cmd
+    .command('moving-avg-heatmap')
+    .description('200-week moving average heatmap')
+    .action(async () => {
+      await indicatorSimple('/api/indicator/getMovingAvgHeatmap', '200 Week Moving Average Heatmap', cmd.opts())
+    })
+
+  cmd
+    .command('grayscale <symbol>')
+    .description('Grayscale open interest by symbol')
+    .action(async (symbol) => {
+      await indicatorWithParams('/api/indicator/getGrayscaleOpenInterest', { symbol }, cmd.opts())
+    })
+
+  cmd
+    .command('chart <type>')
+    .description('Special indicator chart by type')
+    .action(async (type) => {
+      await indicatorWithParams('/api/indicator/index/charts', { type }, cmd.opts())
+    })
+
   cmd.action(async (opts) => {
     await indicatorFg(opts)
   })
@@ -104,5 +132,13 @@ async function indicatorSimple(endpoint, label, opts) {
   if (opts.json) return outputJson(data)
 
   console.log(chalk.bold(`\n  ${label}\n`))
+  console.log(JSON.stringify(data, null, 2))
+}
+
+async function indicatorWithParams(endpoint, params, opts) {
+  const client = createClient()
+  const data = await client.get(endpoint, { params })
+  if (opts.json) return outputJson(data)
+
   console.log(JSON.stringify(data, null, 2))
 }

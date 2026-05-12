@@ -22,14 +22,16 @@ export function createClient() {
         console.error('Error: Request timestamp expired. Check your system clock.')
         process.exit(1)
       }
-      if (body.code !== '1' && body.success !== true) {
+      if (body.code !== '1') {
         console.error(`API Error (code ${body.code}): ${body.msg || 'Unknown error'}`)
         process.exit(1)
       }
       return body.data
     },
     (err) => {
-      if (err.response?.status === 401) {
+      if (err.response?.status === 402) {
+        console.error('Error: Payment required. This CLI currently supports CoinAnk API-key access.')
+      } else if (err.response?.status === 401) {
         console.error('Error: Unauthorized — API key may be expired or invalid.')
       } else {
         console.error(`Network error: ${err.message}`)

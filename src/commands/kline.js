@@ -7,7 +7,7 @@ export function registerKline(program) {
     .command('kline <symbol>')
     .description('K-line OHLCV data (K线) e.g. kline BTCUSDT')
     .option('-e, --exchange <exchange>', 'Exchange: Binance, OKX, Bybit, Huobi, Bitmex, Bitget, Gate', 'Binance')
-    .option('-i, --interval <interval>', 'Interval: 1m,3m,5m,15m,30m,1h,2h,4h,6h,8h,12h,1d,3d,1w', '1h')
+    .option('-i, --interval <interval>', 'Interval: 1m,3m,5m,15m,30m,1h,2h,4h,6h,8h,12h,1d', '1h')
     .option('-p, --product <type>', 'Product type: SWAP or SPOT', 'SWAP')
     .option('-n, --size <n>', 'Number of candles (max 500)', '20')
     .option('--json', 'Output raw JSON')

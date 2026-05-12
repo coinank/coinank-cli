@@ -36,6 +36,28 @@ export function registerFr(program) {
     .option('-i, --interval <interval>', 'Interval: 1D, 1W, 1M, 6M', '1D')
     .action(async (subOpts) => { await frHeatmap({ ...cmd.opts(), ...subOpts }) })
 
+  cmd
+    .command('indicator')
+    .description('Symbol funding-rate indicator history')
+    .option('-e, --exchange <exchange>', 'Exchange', 'Binance')
+    .option('-s, --symbol <symbol>', 'Symbol', 'BTCUSDT')
+    .option('-i, --interval <interval>', 'Interval: 1m,5m,15m,30m,1h,2h,4h,6h,8h,12h,1d', '1h')
+    .action(async (subOpts) => { await frIndicator({ ...cmd.opts(), ...subOpts }) })
+
+  cmd
+    .command('kline')
+    .description('Symbol funding-rate K-line')
+    .option('-e, --exchange <exchange>', 'Exchange', 'Binance')
+    .option('-s, --symbol <symbol>', 'Symbol', 'BTCUSDT')
+    .option('-i, --interval <interval>', 'Interval: 5m,15m,30m,1h,2h,4h,6h,8h,12h,1d', '1h')
+    .action(async (subOpts) => { await frKline({ ...cmd.opts(), ...subOpts }) })
+
+  cmd
+    .command('weighted')
+    .description('Weighted funding rate by base coin')
+    .option('-i, --interval <interval>', 'Interval: 1m,5m,15m,30m,1h,2h,4h,6h,8h,12h,1d', '1h')
+    .action(async (subOpts) => { await frWeighted({ ...cmd.opts(), ...subOpts }) })
+
   cmd.action(async (opts) => { await frHist(opts) })
 }
 
@@ -129,4 +151,45 @@ async function frHeatmap(opts) {
   })
   if (opts.json) return outputJson(data)
   console.log(JSON.stringify(data, null, 2))
+}
+
+async function frIndicator(opts) {
+  const client = createClient()
+  const data = await client.get('/api/fundingRate/indicator', {
+    params: {
+      exchange: opts.exchange || 'Binance',
+      symbol: opts.symbol || 'BTCUSDT',
+      interval: opts.interval || '1h',
+      endTime: nowMs(),
+      size: opts.size,
+    },
+  })
+  outputJson(data)
+}
+
+async function frKline(opts) {
+  const client = createClient()
+  const data = await client.get('/api/fundingRate/kline', {
+    params: {
+      exchange: opts.exchange || 'Binance',
+      symbol: opts.symbol || 'BTCUSDT',
+      interval: opts.interval || '1h',
+      endTime: nowMs(),
+      size: opts.size,
+    },
+  })
+  outputJson(data)
+}
+
+async function frWeighted(opts) {
+  const client = createClient()
+  const data = await client.get('/api/fundingRate/getWeiFr', {
+    params: {
+      baseCoin: opts.coin,
+      interval: opts.interval || '1h',
+      endTime: nowMs(),
+      size: opts.size,
+    },
+  })
+  outputJson(data)
 }

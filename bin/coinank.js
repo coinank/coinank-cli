@@ -15,13 +15,17 @@ import { registerFund } from '../src/commands/fund.js'
 import { registerOrder } from '../src/commands/order.js'
 import { registerNews } from '../src/commands/news.js'
 import { registerCoins } from '../src/commands/coins.js'
+import { registerMarketOrder } from '../src/commands/marketOrder.js'
+import { registerOrderbook } from '../src/commands/orderbook.js'
+import { registerOrderflow } from '../src/commands/orderflow.js'
+import { registerNet } from '../src/commands/net.js'
 
 const program = new Command()
 
 program
   .name('coinank')
   .description('CoinAnk OpenAPI CLI — cryptocurrency derivatives data')
-  .version('0.1.0')
+  .version('1.0.5')
   .addHelpText('after', `
 Environment:
   COINANK_API_KEY    Your CoinAnk API key (alternative to 'coinank config set apikey')
@@ -34,15 +38,19 @@ Examples:
   coinank oi                       # BTC open interest by exchange
   coinank liq                      # BTC liquidation stats
   coinank ls                       # BTC long/short ratio
-  coinank rsi                      # RSI screener (1D)
+  coinank rsi                      # RSI screener (1H)
   coinank rank oi                  # OI change ranking
-  coinank kline BTC/USDT           # BTC klines (1h)
+  coinank kline BTCUSDT            # BTC klines (1h)
   coinank indicator fg             # Fear & Greed index
   coinank etf btc                  # BTC ETF holdings
   coinank hyper positions          # HyperLiquid whale positions
+  coinank market-order cvd         # Market-order CVD
+  coinank orderbook symbol         # Order book depth
+  coinank orderflow                # Order flow list
+  coinank net                      # Net long/short positions
   coinank news                     # Latest news
   coinank fr --json                # Raw JSON output
-  coinank kline BTC/USDT --csv     # CSV export
+  coinank kline BTCUSDT --csv      # CSV export
 `)
 
 registerConfig(program)
@@ -60,5 +68,9 @@ registerFund(program)
 registerOrder(program)
 registerNews(program)
 registerCoins(program)
+registerMarketOrder(program)
+registerOrderbook(program)
+registerOrderflow(program)
+registerNet(program)
 
 program.parse()

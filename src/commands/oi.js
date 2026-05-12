@@ -7,7 +7,7 @@ export function registerOi(program) {
     .command('oi')
     .description('Open interest data (未平仓合约)')
     .option('-c, --coin <coin>', 'Base coin', 'BTC')
-    .option('-i, --interval <interval>', 'Interval: 5m,15m,30m,1h,2h,4h,1d', '1h')
+    .option('-i, --interval <interval>', 'Interval: 1m,3m,5m,15m,30m,1h,2h,4h,6h,8h,12h,1d', '1h')
     .option('-n, --size <n>', 'Number of records', '20')
     .option('--json', 'Output raw JSON')
     .option('--csv', 'Output CSV')
@@ -22,8 +22,10 @@ export function registerOi(program) {
   cmd
     .command('chart')
     .description('OI history chart data')
-    .action(async () => {
-      await oiChart(cmd.opts())
+    .option('-e, --exchange <exchange>', 'Exchange', 'Binance')
+    .option('-t, --type <type>', 'USD or coin name (e.g. BTC)', 'USD')
+    .action(async (subOpts) => {
+      await oiChart({ ...cmd.opts(), ...subOpts })
     })
 
   cmd
@@ -32,6 +34,35 @@ export function registerOi(program) {
     .option('-e, --exchange <exchange>', 'Exchange name')
     .action(async (symbol, symbolOpts) => {
       await oiSymbol(symbol, { ...cmd.opts(), ...symbolOpts })
+    })
+
+  cmd
+    .command('kline <symbol>')
+    .description('OI K-line for a specific symbol')
+    .option('-e, --exchange <exchange>', 'Exchange name', 'Binance')
+    .action(async (symbol, subOpts) => {
+      await oiKline(symbol, { ...cmd.opts(), ...subOpts })
+    })
+
+  cmd
+    .command('agg-kline')
+    .description('Aggregated OI K-line by base coin')
+    .action(async () => {
+      await oiAggKline(cmd.opts())
+    })
+
+  cmd
+    .command('top')
+    .description('Real-time OI by exchange for base coin')
+    .action(async () => {
+      await oiTopByExchange(cmd.opts())
+    })
+
+  cmd
+    .command('vs-mc')
+    .description('Historical OI vs market-cap ratio')
+    .action(async () => {
+      await oiVsMarketCap(cmd.opts())
     })
 
   cmd.action(async (opts) => {
@@ -76,9 +107,10 @@ async function oiChart(opts) {
   const data = await client.get('/api/openInterest/v2/chart', {
     params: {
       baseCoin: opts.coin,
+      exchange: opts.exchange || 'Binance',
       interval: opts.interval,
-      endTime: nowMs(),
       size: opts.size,
+      type: opts.type || 'USD',
     },
   })
 
@@ -113,4 +145,60 @@ async function oiSymbol(symbol, opts) {
     ])
   }
   console.log(table.toString())
+}
+
+async function oiKline(symbol, opts) {
+  const client = createClient()
+  const data = await client.get('/api/openInterest/kline', {
+    params: {
+      exchange: opts.exchange || 'Binance',
+      symbol,
+      interval: opts.interval,
+      endTime: nowMs(),
+      size: opts.size,
+    },
+  })
+
+  if (opts.json) return outputJson(data)
+  console.log(JSON.stringify(data, null, 2))
+}
+
+async function oiAggKline(opts) {
+  const client = createClient()
+  const data = await client.get('/api/openInterest/aggKline', {
+    params: {
+      baseCoin: opts.coin,
+      interval: opts.interval,
+      endTime: nowMs(),
+      size: opts.size,
+    },
+  })
+
+  if (opts.json) return outputJson(data)
+  console.log(JSON.stringify(data, null, 2))
+}
+
+async function oiTopByExchange(opts) {
+  const client = createClient()
+  const data = await client.get('/api/tickers/topOIByEx', {
+    params: { baseCoin: opts.coin },
+  })
+
+  if (opts.json) return outputJson(data)
+  console.log(JSON.stringify(data, null, 2))
+}
+
+async function oiVsMarketCap(opts) {
+  const client = createClient()
+  const data = await client.get('/api/instruments/oiVsMc', {
+    params: {
+      baseCoin: opts.coin,
+      endTime: nowMs(),
+      size: opts.size,
+      interval: opts.interval,
+    },
+  })
+
+  if (opts.json) return outputJson(data)
+  console.log(JSON.stringify(data, null, 2))
 }
